@@ -1,0 +1,102 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Serif+SC:wght@400;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --font-serif: "Noto Serif SC", serif;
+}
+
+@layer base {
+  body {
+    @apply font-sans bg-[#f0f2f5] text-slate-900;
+  }
+}
+
+.glass-header {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.bg-soft-gradient {
+  background: linear-gradient(135deg, #f0fdfa 0%, #ffffff 50%, #f7fee7 100%);
+}
+
+.bg-aged-paper {
+  background-color: #f7f3e9;
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(20, 184, 166, 0.05) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(14, 165, 233, 0.05) 0px, transparent 50%),
+    radial-gradient(at 50% 100%, rgba(163, 230, 53, 0.05) 0px, transparent 50%),
+    url("https://www.transparenttextures.com/patterns/handmade-paper.png");
+  position: relative;
+  overflow: hidden;
+}
+
+.bg-aged-paper::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 50%, transparent 0%, rgba(247, 243, 233, 0.4) 100%);
+  pointer-events: none;
+}
+
+.hero-title {
+  @apply text-5xl md:text-7xl lg:text-8xl font-serif font-black text-slate-900 tracking-tight leading-[1.1];
+}
+
+.hero-subtitle {
+  @apply text-lg md:text-xl text-slate-500 font-medium tracking-[0.05em] leading-relaxed;
+}
+
+.nav-link-centered {
+  @apply text-sm font-semibold text-slate-600 hover:text-teal-600 transition-colors flex items-center gap-1.5;
+}
+
+.btn-dark {
+  @apply px-8 py-3 bg-slate-900 text-white text-[13px] font-bold rounded-full shadow-lg hover:bg-slate-800 transition-all active:scale-95;
+}
+
+.btn-light {
+  @apply px-8 py-3 bg-white border border-slate-200 text-slate-900 text-[13px] font-bold rounded-full shadow-md hover:bg-slate-50 transition-all active:scale-95 flex items-center gap-2;
+}
+
+.feature-card {
+  background: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 32px;
+  transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  box-shadow: 
+    0 4px 6px -1px rgba(0, 0, 0, 0.05),
+    0 2px 4px -1px rgba(0, 0, 0, 0.03),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.6);
+}
+
+.feature-card:hover {
+  background: rgba(255, 255, 255, 0.7);
+  transform: translateY(-12px);
+  box-shadow: 
+    0 30px 60px -12px rgba(0, 0, 0, 0.08),
+    0 18px 36px -18px rgba(0, 0, 0, 0.05);
+}
+
+.accent-gradient {
+  background: linear-gradient(135deg, #ff9068 0%, #ff4b1f 100%);
+}
+
+.cool-gradient {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.teal-gradient {
+  background: linear-gradient(135deg, #38ef7d 0%, #11998e 100%);
+}
+
+/* Custom shadow for 3d floating effect */
+.shadow-3d {
+  box-shadow: 
+    0 20px 40px -10px rgba(0, 0, 0, 0.2),
+    0 40px 80px -20px rgba(0, 0, 0, 0.1);
+}
