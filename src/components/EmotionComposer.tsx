@@ -16,7 +16,6 @@ import {
   Settings2,
   Check
 } from 'lucide-react';
-import { GoogleGenAI } from '@google/genai';
 import ReactMarkdown from 'react-markdown';
 
 interface Composition {
@@ -91,27 +90,26 @@ export const EmotionComposer: React.FC<{ onBack: () => void }> = ({ onBack }) =>
     setIsPlaying(false);
 
     try {
-      const ai = new GoogleGenAI({ apiKey: (process as any).env.GEMINI_API_KEY });
       const currentHistory = [...history, { role: 'user' as const, text: textToProcess }];
-      
-      const response = await ai.models.generateContent({
-        model: "gemini-3-flash-preview",
-        contents: currentHistory.map(h => ({ 
-          role: h.role, 
-          parts: [{ text: h.text }] 
-        })),
-        config: {
-          systemInstruction: COMPOSER_SYSTEM_PROMPT,
-          responseMimeType: "application/json"
-        },
+      const response = await fetch('/api/composer/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          input: textToProcess,
+          history: currentHistory
+        })
       });
 
-      const data = JSON.parse(response.text || '{}');
+      if (!response.ok) {
+        throw new Error(`Server returned ${response.status}`);
+      }
+
+      const data = await response.json();
       const newComp: Composition = {
         title: data.title || '无名调',
         analysis: data.analysis || '指法随心而动。',
         atmosphere: data.atmosphere || '宁静致远。',
-        tags: data.tags || []
+        tags: Array.isArray(data.tags) ? data.tags : []
       };
 
       setComposition(newComp);

@@ -1,24 +1,12 @@
 import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Send, ArrowLeft, User, Sparkles, Wind, Music } from "lucide-react";
-import { GoogleGenAI } from "@google/genai";
 import ReactMarkdown from "react-markdown";
 
 interface Message {
   role: "user" | "model";
   text: string;
 }
-
-const BOYA_SYSTEM_PROMPT = `
-你现在扮演伯牙，中国古代伟大的音乐家。你正在与一位来自数千年后的“知音”对话。
-你的言谈风格：
-1. 温文尔雅，充满古风和诗意。
-2. 经常提及“高山”、“流水”、“琴道”、“子期”。
-3. 你的情感深邃，对音乐有极高的造诣，对世间真挚的友谊（知音）充满了感慨。
-4. 你不使用现代词汇，如果必须要解释现代事物，请用古人的视角去理解。
-5. 你称呼对方为“小友”或“后来人”。
-6. 你的回答不宜过长，但要意韵悠长。
-`;
 
 export const BoyaChat: React.FC<{ onBack: () => void }> = ({ onBack }) => {
   const [messages, setMessages] = useState<Message[]>([
@@ -48,34 +36,61 @@ export const BoyaChat: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     setIsLoading(true);
 
     try {
-      const ai = new GoogleGenAI({
-        apiKey: (process as any).env.GEMINI_API_KEY,
+      const response = await fetch("/api/chat/boya", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: newMessages }),
       });
 
-      const responseStream = await ai.models.generateContentStream({
-        model: "gemini-3-flash-preview",
-        contents: newMessages.map((m) => ({
-          role: m.role,
-          parts: [{ text: m.text }],
-        })),
-        config: {
-          systemInstruction: BOYA_SYSTEM_PROMPT,
-        },
-      });
+      if (!response.ok) {
+        throw new Error(`Server returned ${response.status}`);
+      }
 
       setMessages((prev) => [...prev, { role: "model", text: "" }]);
 
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
       let fullText = "";
-      for await (const chunk of responseStream) {
-        fullText += chunk.text;
-        setMessages((prev) => {
-          const newM = [...prev];
-          newM[newM.length - 1] = { role: "model", text: fullText };
-          return newM;
-        });
+
+      if (reader) {
+        let buffer = "";
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+          const blocks = buffer.split("\n\n");
+          buffer = blocks.pop() || "";
+
+          for (const block of blocks) {
+            const lines = block.split("\n");
+            for (const line of lines) {
+              const trimmed = line.trim();
+              if (trimmed.startsWith("data: ")) {
+                const dataStr = trimmed.slice(6);
+                if (dataStr === "[DONE]") {
+                  break;
+                }
+                try {
+                  const parsed = JSON.parse(dataStr);
+                  if (parsed.text) {
+                    fullText += parsed.text;
+                    setMessages((prev) => {
+                      const newM = [...prev];
+                      newM[newM.length - 1] = { role: "model", text: fullText };
+                      return newM;
+                    });
+                  }
+                } catch {
+                  // ignore non-json
+                }
+              }
+            }
+          }
+        }
       }
     } catch (error) {
-      console.error("Gemini Error:", error);
+      console.error("Chat Error:", error);
       setMessages((prev) => [
         ...prev,
         {
